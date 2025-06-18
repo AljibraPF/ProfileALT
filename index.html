@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sup, Nerd!!</title>
+    <style>
+        :root {
+            --primary: #8c5e4b;   
+            --secondary: #b47556; 
+            --dark: #5d3a2b;      
+            --light: #f9f3f1;      
+            --accent: #c39178;   
+            --text: #2a1e18;       
+            --highlight: #d8a285;  
+            --pale: #f3c8b1;      
+            --shadow: 0 4px 8px rgba(93, 58, 43, 0.2);
+            --dark-line: #2a1e18;
+            --bright-line: #f3c8b1;
+
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--text);
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(195, 145, 120, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(180, 117, 86, 0.1) 0%, transparent 20%);
+            line-height: 1.6;
+        }
+
+         #loading-screen {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                background-color: var(--primary);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 9999;
+                transition: opacity 0.5s ease;
+            }
+
+            svg {
+                height: 80vh;
+                stroke-linecap: round;
+                stroke-linejoin: round;
+            }
+
+            .jagged-base {
+                stroke: var(--dark-line);
+                stroke-width: 2;
+                fill: none;
+            }
+
+            .jagged-fill {
+                stroke: var(--bright-line);
+                stroke-width: 2;
+                fill: none;
+            }
+
+
+            @keyframes draw {
+                to {
+                    stroke-dashoffset: 0;
+                }
+            }
+
+            #main-content {
+                display: none;
+                padding: 2rem;
+            }
+
+        #click-spark-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .scene {
+            perspective: 1000px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .profile-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 3rem;
+            transform-style: preserve-3d;
+            animation: float 6s ease-in-out infinite;
+            transition: transform 0.8s ease-out; 
+        }
+
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid var(--accent);
+            box-shadow: 0 0 20px rgba(195, 145, 120, 0.4);
+            transition: all 0.3s ease;
+            margin-bottom: 0.5rem;
+            background-color: var(--pale);
+        }
+
+        .profile-image:hover {
+            transform: scale(1.05) rotate(5deg);
+            box-shadow: 0 0 30px rgba(195, 145, 120, 0.6);
+            border-color: var(--secondary);
+        }
+
+        .artist-credit {
+            font-size: 0.8rem;
+            color: var(--primary);
+            opacity: 0.8;
+            transition: all 0.3s ease;
+            font-style: italic;
+        }
+
+        .artist-credit:hover {
+            opacity: 1;
+            color: var(--secondary);
+        }
+
+        .header-content {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: var(--dark);
+            text-shadow: 1px 1px 2px rgba(93, 58, 43, 0.2);
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, var(--secondary), var(--primary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 1px;
+        }
+
+        .tagline {
+            font-style: italic;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotateY(0deg); }
+            50% { transform: translateY(-10px) rotateY(5deg); }
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 3rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem 0;
+        }
+
+        .card {
+            background: var(--pale);
+            border-radius: 15px;
+            padding: 1.8rem;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--accent);
+            transform-style: preserve-3d;
+            transition: transform 2s ease-out, box-shadow 1s ease; 
+            position: relative;
+            overflow: hidden;
+            margin: 1rem 0;
+            transform-origin: center center;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(93, 58, 43, 0.25);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                transparent,
+                transparent,
+                transparent,
+                rgba(195, 145, 120, 0.2),
+                transparent,
+                transparent
+            );
+            transform: rotate(30deg);
+            opacity: 0.1;
+            transition: opacity 0.5s ease;
+        }
+
+        .card:hover::before {
+            opacity: 0.3;
+        }
+
+        h2 {
+            color: var(--primary);
+            margin-bottom: 1.2rem;
+            border-bottom: 2px solid var(--highlight);
+            padding-bottom: 0.5rem;
+            font-size: 1.8rem;
+        }
+
+        p, li {
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        ul {
+            list-style-type: none;
+            padding-left: 1rem;
+        }
+
+        li::before {
+            content: '•';
+            color: var(--secondary);
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+            font-weight: bold;
+        }
+
+        .interactive-element {
+            position: fixed;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.5;
+        }
+
+        .clickable-effect {
+            text-decoration: none;
+            color: inherit;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
+        }
+
+        @keyframes jiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        .bounce { animation: bounce 0.4s ease; }
+        .shake  { animation: shake 0.4s ease; }
+        .jiggle { animation: jiggle 0.4s ease; }
+        .pop    { animation: pop 0.4s ease; }
+
+        .snake {
+            width: 100px;
+            height: 40px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 40"><path d="M10,20 Q25,5 40,20 Q55,35 70,20 Q85,5 100,20" stroke="%238c5e4b" fill="none" stroke-width="3"/></svg>') no-repeat;
+            animation: slither 15s linear infinite;
+        }
+
+        @keyframes slither {
+            0% { transform: translateX(-150px) rotate(0deg); }
+            100% { transform: translateX(calc(100vw + 150px)) rotate(360deg); }
+        }
+
+        .pokeball {
+            width: 50px;
+            height: 50px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke="%23b47556" stroke-width="3"/><path d="M5,25 H45" stroke="%23b47556" stroke-width="3"/><circle cx="25" cy="25" r="5" fill="%23b47556"/></svg>') no-repeat;
+            animation: spin 8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 1.5rem;
+            color: var(--primary);
+            font-size: 0.9rem;
+            background-color: rgba(195, 145, 120, 0.1);
+            border-radius: 10px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .container {
+                flex-direction: column;
+                align-items: center;
+                gap: 2rem;
+            }
+            
+            .card {
+                width: 95%;
+                padding: 1.3rem;
+            }
+
+            .profile-image {
+                width: 130px;
+                height: 130px;
+            }
+            
+            .scene {
+                padding: 1.5rem;
+            }
+        }
+
+        .highlight {
+            color: var(--primary);
+            font-weight: bold;
+            background-color: rgba(195, 145, 120, 0.2);
+            padding: 0 4px;
+            border-radius: 3px;
+        }
+
+        .warning {
+            color: #8c2e0b;
+            font-weight: bold;
+        }
+
+        .love {
+            color: var(--secondary);
+            animation: pulse 1.5s infinite;
+            font-weight: bold;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .rpg-button {
+            background: linear-gradient(to bottom, var(--secondary), var(--primary));
+            color: var(--light);
+            border: none;
+            padding: 0.9rem 1.8rem;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            margin: 1.2rem 0;
+            box-shadow: 0 5px 15px rgba(140, 94, 75, 0.3);
+            transform-style: preserve-3d;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+
+        .rpg-button:hover {
+            background: linear-gradient(to bottom, var(--primary), var(--dark));
+            transform: translateY(-3px) rotateX(10deg);
+            box-shadow: 0 8px 20px rgba(140, 94, 75, 0.4);
+        }
+
+        .rpg-button:active {
+            transform: translateY(1px);
+        }
+
+        .rpg-button::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                transparent,
+                transparent,
+                transparent,
+                rgba(255, 255, 255, 0.3),
+                transparent,
+                transparent
+            );
+            transform: rotate(30deg);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .rpg-button:hover::after {
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading-screen">
+        <svg viewBox="0 0 100 500">
+        <path class="jagged-base" d="M50,0 Q47,20 53,40 Q49,60 51,80 Q48,100 52,120 Q50,140 50,160 Q47,180 53,200 Q49,220 51,240 Q48,260 52,280 Q50,300 50,320 Q47,340 53,360 Q49,380 51,400 Q48,420 52,440 Q50,460 50,480" />
+
+        <path class="jagged-fill" d="M50,0 Q47,20 53,40 Q49,60 51,80 Q48,100 52,120 Q50,140 50,160 Q47,180 53,200 Q49,220 51,240 Q48,260 52,280 Q50,300 50,320 Q47,340 53,360 Q49,380 51,400 Q48,420 52,440 Q50,460 50,480" />
+        </svg>
+    </div>
+
+    <div id="main-content">
+        <canvas id="click-spark-canvas"></canvas>
+
+        <div class="scene">
+            <div class="interactive-element snake" style="top: 15%; left: 5%;"></div>
+            <div class="interactive-element pokeball" style="top: 25%; right: 8%;"></div>
+            <div class="interactive-element snake" style="top: 65%; left: 12%; transform: scaleX(-1);"></div>
+            <div class="interactive-element pokeball" style="top: 75%; right: 12%;"></div>
+
+            <div class="profile-section">
+                <img src="./img/cornsnek.jpg" alt="Hynda Image" class="profile-image">
+                <span class="artist-credit">Art by sakkiye on DeviantArt</span>
+                
+                <div class="header-content">
+                    <h1 id="title-text">Hynda's Siwwy Page :3</h1>
+                    <p class="tagline" id="tagline-text">"Your local basic bitch."</p>
+                </div>
+            </div>
+
+            <div class="container">
+                <div class="card" id="about-card">
+                    <h2>Hey there!</h2>
+                    <p>I'm <span class="highlight">Hynda</span>! I'm a guy from Indonesia, and my timezone is <span class="highlight">GMT +8</span>. I recently turned <span class="highlight">18</span> a few months ago. I really like chatting through text, and if I get excited about something, you might find me asking a bunch of questions. It's just me being curious, mind ya!</p>
+                    
+                    <h2>A Bit About Me</h2>
+                    <p>I'm pretty chatty and love diving into silly convos about things I find interesting. When I get into a topic, I want to know all the little details! Though, fair warning, I can get quite needy sometimes, so just let me know if I'm too much! Oh, and I absolutely <span class="love">LOVE</span> it if you ask me a question about one of my OCs or any of my interests! You'll be one of my top favorite human beings if you do this, <span class="highlight">fr fr</span>.</p>
+                </div>
+
+                <div class="card" id="interests-card">
+                    <h2>Stuff I'm Into</h2>
+                    <ul>
+                        <li><span class="highlight">ROLEPLAYYYYY</span>
+                        <li><span class="highlight">Snakes!</span> - Corn sneks, and albino yellow ball python :3 </li>
+                        <li><span class="highlight">Rain World</span> 
+                        <li><span class="highlight">Roblox</span> - Username: Hindasery</li>
+                        <li><span class="highlight">Pokémon Mystery Dungeon</span></li>
+                        <li><span class="highlight">WCUE</span> - (Warrior Cats Ultimate Edition)</li>
+                        <li><span class="highlight">Listening to music</span> - Here are my recent favorite boyos:
+                            <ul>
+                                <li>Will Wood</li>
+                                <li>YonKaGor</li>
+                                <li>Ivycomb</li>
+                                <li>girakacheezer</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card" id="limits-card">
+                    <h2>What's Off-Limits</h2>
+                    <p>Let's try to make sure we're both comfortable, mkay? Avoid these things when talking to me:</p>
+                    <ul>
+                        <li><span class="warning">No politics talk, please.</span></li>
+                        <li>If you are uncomfortable with a few things that I say, then please, for the love of God, tell me directly. Don't do any subtle hints or signs because I will <span class="warning">NOT</span> catch it. Directness is preferred over subtleness.</li>
+                        <li>Toilet talk or anything toilet-related? Let's skip that; it's gross. I don't need to know that you're going there. Just say that you have to do something.</li>
+                    </ul>
+                </div>
+
+                <div class="card" id="appreciate-card">
+                    <h2>Not Off-Limits but I Would Severely Appreciate It</h2>
+                    <p>Instead of just saying "Ok," feel free to mix it up with "Okie," "Alr," "fr," or anything else. It really makes a difference! If you take the time to do this, I would absolutely <span class="love">LOVE YOU FOR IT</span> (platonic, of course). Also, please express your boundaries so I don't accidentally step over them, considering I like oversharing sometimes. If you don't do this, then I'll probably bring it up in future convos.</p>
+                </div>
+            </div>
+
+            <div class="card" style="max-width: 800px; text-align: center;">
+                <h2>That's Me!</h2>
+                <p>Thanks for stopping by and checking me out! I'm looking forward to roleplaying and hanging out with you, silly! Just try to keep it all friendly and respectful, and you'll be to good to go.</p>
+                <button class="rpg-button" id="rp-button">Click Me!</button>
+            </div>
+
+            <footer>
+                <p>© 2025 Hynda's Webpage | GMT+8 | Heavy WIP |</p>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+
+        const MIN_LOAD_TIME = 5000;
+        const start = Date.now();
+
+        window.addEventListener("load", () => {
+            const elapsed = Date.now() - start;
+            const remaining = Math.max(0, MIN_LOAD_TIME - elapsed);
+
+            const brightPath = document.querySelector('.jagged-fill');
+            const pathLength = brightPath.getTotalLength();
+
+            brightPath.style.strokeDasharray = pathLength;
+            brightPath.style.strokeDashoffset = pathLength;
+
+            brightPath.getBoundingClientRect();
+
+            brightPath.style.transition = `stroke-dashoffset ${remaining}ms ease-out`;
+            brightPath.style.strokeDashoffset = '0';
+
+            setTimeout(() => {
+            const screen = document.getElementById("loading-screen");
+            screen.style.opacity = "0";
+            setTimeout(() => {
+                screen.style.display = "none";
+                document.getElementById("main-content").style.display = "block";
+            }, 500);
+            }, remaining);
+        });
+
+        const effects = ['bounce', 'shake', 'jiggle', 'pop'];
+
+        function wrapWords(selector) {
+            const el = document.getElementById(selector);
+            const words = el.innerText.trim().split(/\s+/);
+
+            el.innerHTML = words.map(word => 
+                `<span class="word clickable-effect">${word}</span>`
+            ).join(' ');
+        }
+
+        wrapWords("title-text");
+        wrapWords("tagline-text");
+
+        document.querySelectorAll('.clickable-effect').forEach(span => {
+            span.addEventListener('click', e => {
+                const effect = effects[Math.floor(Math.random() * effects.length)];
+                span.classList.add(effect);
+                span.addEventListener('animationend', () => {
+                    span.classList.remove(effect);
+                }, { once: true });
+            });
+        });
+
+        const clickSpark = {
+            canvas: null,
+            ctx: null,
+            sparks: [],
+            config: {
+                sparkColor: "#d8a285", 
+                sparkSize: 8,
+                sparkRadius: 20,
+                sparkCount: 12,
+                duration: 600,
+                easing: "ease-out",
+                extraScale: 1.0
+            },
+
+            init() {
+                this.canvas = document.getElementById('click-spark-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                
+                this.resizeCanvas();
+                
+                window.addEventListener('resize', this.resizeCanvas.bind(this));
+                
+                document.addEventListener('click', this.handleClick.bind(this));
+                
+                this.animate();
+            },
+
+            resizeCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+            },
+
+            easeFunc(t) {
+                switch (this.config.easing) {
+                    case "linear": return t;
+                    case "ease-in": return t * t;
+                    case "ease-in-out": return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+                    default: return t * (2 - t); 
+                }
+            },
+
+            handleClick(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const now = performance.now();
+                const newSparks = Array.from({ length: this.config.sparkCount }, (_, i) => ({
+                    x,
+                    y,
+                    angle: (2 * Math.PI * i) / this.config.sparkCount,
+                    startTime: now
+                }));
+                
+                this.sparks.push(...newSparks);
+            },
+
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                const now = performance.now();
+                
+                this.sparks = this.sparks.filter(spark => {
+                    const elapsed = now - spark.startTime;
+                    if (elapsed >= this.config.duration) return false;
+                    
+                    const progress = elapsed / this.config.duration;
+                    const eased = this.easeFunc(progress);
+                    
+                    const distance = eased * this.config.sparkRadius * this.config.extraScale;
+                    const lineLength = this.config.sparkSize * (1 - eased);
+                    
+                    const x1 = spark.x + distance * Math.cos(spark.angle);
+                    const y1 = spark.y + distance * Math.sin(spark.angle);
+                    const x2 = spark.x + (distance + lineLength) * Math.cos(spark.angle);
+                    const y2 = spark.y + (distance + lineLength) * Math.sin(spark.angle);
+                    
+                    this.ctx.strokeStyle = this.config.sparkColor;
+                    this.ctx.lineWidth = 2;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x1, y1);
+                    this.ctx.lineTo(x2, y2);
+                    this.ctx.stroke();
+                    
+                    return true;
+                });
+                
+                requestAnimationFrame(this.animate.bind(this));
+            }
+        };
+
+        clickSpark.init();
+
+        document.addEventListener('mousemove', (e) => {
+            const cards = document.querySelectorAll('.card');
+            const profileSection = document.querySelector('.profile-section');
+            
+            cards.forEach((card, index) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                
+                let angleX = (y - centerY) / 40;  
+                let angleY = (centerX - x) / 40;  
+                
+                angleX = Math.max(Math.min(angleX, 12), -12);
+                angleY = Math.max(Math.min(angleY, 12), -12);
+                
+                card.style.zIndex = angleY > 0 ? 1 : 2;
+                
+                card.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateY(${angleY}deg) translateY(-5px)`;
+            });
+            
+            const profileRect = profileSection.getBoundingClientRect();
+            const profileX = e.clientX - profileRect.left;
+            const profileY = e.clientY - profileRect.top;
+            const profileCenterX = profileRect.width / 2;
+            const profileCenterY = profileRect.height / 2;
+            let profileAngleX = (profileY - profileCenterY) / 60; 
+            let profileAngleY = (profileCenterX - profileX) / 60;  
+            
+            profileAngleX = Math.max(Math.min(profileAngleX, 8), -8);
+            profileAngleY = Math.max(Math.min(profileAngleY, 8), -8);
+            
+            profileSection.style.transform = `translateY(0) rotateY(${profileAngleY}deg) rotateX(${profileAngleX}deg)`;
+        });
+
+        document.addEventListener('mouseout', (e) => {
+            if (!e.relatedTarget || !e.relatedTarget.classList.contains('card')) {
+                const cards = document.querySelectorAll('.card');
+                cards.forEach(card => {
+                    card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)';
+                    card.style.zIndex = '';
+                });
+                
+                const profileSection = document.querySelector('.profile-section');
+                profileSection.style.transform = 'translateY(0) rotateY(0) rotateX(0)';
+            }
+        });
+
+        const rpButton = document.getElementById('rp-button');
+        rpButton.addEventListener('click', () => {
+            rpButton.textContent = 'Ssss!';
+            rpButton.style.background = 'linear-gradient(to bottom, var(--primary), var(--dark))';
+            
+            for (let i = 0; i < 5; i++) {
+                floatingSnek();
+            }
+            
+            setTimeout(() => {
+                rpButton.textContent = 'Click Me!';
+                rpButton.style.background = 'linear-gradient(to bottom, var(--secondary), var(--primary))';
+            }, 2000);
+        });
+
+        function floatingSnek() {
+            const snek = document.createElement('div');
+            snek.innerHTML = '🐍';
+            snek.style.position = 'fixed';
+            snek.style.fontSize = '20px';
+            snek.style.pointerEvents = 'none';
+            snek.style.left = Math.random() * 100 + 'vw';
+            snek.style.top = '80%';
+            snek.style.opacity = '1';
+            snek.style.transform = 'translateY(0)';
+            snek.style.transition = 'all 1s ease-out';
+            snek.style.zIndex = '1000';
+            snek.style.color = 'var(--secondary)';
+            
+            document.body.appendChild(snek);
+            
+            setTimeout(() => {
+                snek.style.opacity = '0';
+                snek.style.transform = 'translateY(-100px)';
+            }, 10);
+            
+            setTimeout(() => {
+                snek.remove();
+            }, 1000);
+        }
+
+        function createInteractiveElements() {
+            const types = ['snake', 'pokeball'];
+            const scene = document.querySelector('.scene');
+            
+            for (let i = 0; i < 5; i++) {
+                const type = types[Math.floor(Math.random() * types.length)];
+                const element = document.createElement('div');
+                element.className = `interactive-element ${type}`;
+                
+                const left = Math.random() * 80 + 10;
+                const top = Math.random() * 80 + 10;
+                element.style.left = `${left}%`;
+                element.style.top = `${top}%`;
+                
+                const size = Math.random() * 50 + 30;
+                element.style.width = `${size}px`;
+                element.style.height = `${size}px`;
+                
+                const duration = Math.random() * 10 + 10;
+                if (type === 'snake') {
+                    element.style.animation = `slither ${duration}s linear infinite`;
+                } else {
+                    element.style.animation = `spin ${duration}s linear infinite`;
+                }
+                
+                scene.appendChild(element);
+            }
+        }
+
+        createInteractiveElements();
+    </script>
+</body>
+</html>
